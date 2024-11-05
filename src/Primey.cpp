@@ -32,13 +32,28 @@ void primes_worker()
     }
 }
 
+template <class _Rep, class _Period>
+void progress_sleep(const std::chrono::duration<_Rep, _Period>& t)
+{
+    using std::chrono::operator""s;
+
+    std::chrono::steady_clock::time_point stop = std::chrono::steady_clock::now() + t;
+    while (std::chrono::steady_clock::now() < stop)
+    {
+        std::this_thread::sleep_for(1s);
+        std::cout << "." << std::flush;
+    }
+    std::cout << std::endl;
+}
+
 int main() {
     using namespace std::chrono_literals;
 
+    primes.reserve(10000);
     std::jthread worker(primes_worker);
     std::cout << "Started worker." << std::endl;
 
-    std::this_thread::sleep_for(5s);
+    progress_sleep(5s);
     stop = true;
 
     std::cout << "Found " << primes.size() << " primes." << std::endl;
