@@ -49,7 +49,7 @@ void progress_sleep(const std::chrono::duration<_Rep, _Period>& t)
 int main() {
     using namespace std::chrono_literals;
 
-    primes.reserve(10000);
+    primes.reserve(10'000'00);
     std::jthread worker(primes_worker);
     std::cout << "Started worker." << std::endl;
 
