@@ -15,3 +15,9 @@ set(h_files_core
 )
 
 add_executable(Primey ${cpp_files_core} ${h_files_core})
+
+find_package(Threads)
+
+target_link_libraries(Primey
+    ${CMAKE_THREAD_LIBS_INIT}
+)

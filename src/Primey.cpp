@@ -1,49 +1,46 @@
 #include <iostream>
+#include <vector>
 #include <chrono>
 #include <thread>
-#include <mutex>
-#include <condition_variable>
-#include <set>
+#include <atomic>
 
-std::mutex sync;
-std::condition_variable stopper;
-bool stop;
-std::set<int> terminated;
+std::atomic_bool stop;
 
-void worker(int id)
+
+std::vector<unsigned long long> primes;
+
+void primes_worker()
 {
-    using namespace std::chrono_literals;
-
-    for (int i = 0; i < 20; i++)
+    primes.push_back(2);
+    unsigned long long n = 3;
+    while (!stop)
     {
-        std::unique_lock lock{ sync };
-        if (stopper.wait_for(lock, 250ms, [id] { std::cout << id << ": check" << std::endl; return terminated.contains(id); }))
+        bool is_prime = true;
+        for (unsigned long long i = 2; i * i <= n; i++)
         {
-            terminated.erase(id);
-            std::cout << "Worker " << id << " interrupted" << std::endl;
-            return;
+            if (n % i == 0)
+            {
+                is_prime = false;
+                break;
+            }
         }
-        std::cout << id << ": " << i << std::endl;
+        if (is_prime)
+        {
+            primes.push_back(n);
+        }
+        n += 2;
     }
-    std::cout << "Worker " << id << " finished" << std::endl;
 }
-
 
 int main() {
     using namespace std::chrono_literals;
 
-    std::jthread t1(worker, 1);
-    std::jthread t2(worker, 2);
+    std::jthread worker(primes_worker);
+    std::cout << "Started worker." << std::endl;
 
-    std::cout << "Hello, World!" << std::endl;
+    std::this_thread::sleep_for(5s);
+    stop = true;
 
-    std::this_thread::sleep_for(1s);
-    {
-        std::unique_lock lock{ sync };
-        stop = true;
-        terminated.insert(1);
-        stopper.notify_one();
-    }
-    std::this_thread::sleep_for(8s);
+    std::cout << "Found " << primes.size() << " primes." << std::endl;
     return 0;
 }
